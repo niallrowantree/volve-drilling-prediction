@@ -70,15 +70,11 @@ For each of 13 geological formations, splits all on-bottom rows into ROP quartil
 
 ---
 
-## A note on domain expertise
+## The biggest takeaway
 
-The most consistent lesson across this project is that subject matter expertise is not optional — it is the difference between a technically sound model and a useful one.
+This was an interesting exercise — but the clearest conclusion from it is that you need a drilling engineer to make a dataset like this genuinely useful. The data captures what happened: the pressures, the flows, the parameters that were set. It does not capture why that well was drilled in that location, what the tool pusher knew that was never written down, or how to interpret an anomaly in context. The Volve dataset is to an asset what a cave painting is to a hunt — a record of what happened, silent on why.
 
-A dataset captures the observable state of an asset: pressures, flows, the decisions that got logged in a system. It does not capture why that well was drilled in that location, why an intervention was delayed, or what the tool pusher knew that was never written down. The Volve dataset is to an asset what a cave painting is to a hunt — a record of what happened, but silent on the reasoning, the feel, and the tacit knowledge that shaped it.
-
-This showed up repeatedly in practice: knowing which channels to trust (dmea recorded in feet for F-15S; the 99th-percentile depth ceiling capping cross-well predictions for F-10); knowing what the on-bottom filter should be and why tripping and reaming rows would otherwise corrupt the benchmarks; recognising that high ROP in Aasgard and Draupne reflects natural fractures and means something fundamentally different from high ROP in the shallow clastics. None of that comes from the data alone.
-
-GenAI can absorb well reports, engineering documentation, and operational context faster than any human analyst — and it should. Capturing as much institutional knowledge as structured context will improve every model built on top of it. But it is not a substitute for the engineer who has stood on a rig floor or interpreted a pressure build-up test. The tacit knowledge — why decisions were made, what was felt, what was never written down — simply does not exist in any dataset.
+That gap matters more on a real asset. Volve is a decommissioned training dataset with reasonable documentation. On a live field, the stakes are higher, the data is messier, and the decisions are consequential. GenAI can absorb well reports and engineering documentation quickly, but it is not a substitute for the engineer who has stood on a rig floor. The tacit knowledge simply does not exist in any dataset.
 
 ---
 
