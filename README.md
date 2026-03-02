@@ -70,6 +70,18 @@ For each of 13 geological formations, splits all on-bottom rows into ROP quartil
 
 ---
 
+## A note on domain expertise
+
+The most consistent lesson across this project is that subject matter expertise is not optional — it is the difference between a technically sound model and a useful one.
+
+A dataset captures the observable state of an asset: pressures, flows, the decisions that got logged in a system. It does not capture why that well was drilled in that location, why an intervention was delayed, or what the tool pusher knew that was never written down. The Volve dataset is to an asset what a cave painting is to a hunt — a record of what happened, but silent on the reasoning, the feel, and the tacit knowledge that shaped it.
+
+This showed up repeatedly in practice: knowing which channels to trust (dmea recorded in feet for F-15S; the 99th-percentile depth ceiling capping cross-well predictions for F-10); knowing what the on-bottom filter should be and why tripping and reaming rows would otherwise corrupt the benchmarks; recognising that high ROP in Aasgard and Draupne reflects natural fractures and means something fundamentally different from high ROP in the shallow clastics. None of that comes from the data alone.
+
+GenAI can absorb well reports, engineering documentation, and operational context faster than any human analyst — and it should. Capturing as much institutional knowledge as structured context will improve every model built on top of it. But it is not a substitute for the engineer who has stood on a rig floor or interpreted a pressure build-up test. The tacit knowledge — why decisions were made, what was felt, what was never written down — simply does not exist in any dataset.
+
+---
+
 ## Stack
 
 - **Platform:** Databricks (Unity Catalog, Delta Lake, serverless compute)
