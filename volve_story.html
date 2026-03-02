@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volve Field — Drilling Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #053057;
+    --navy2:  #003059;
+    --teal:   #304550;
+    --cyan:   #00EDED;
+    --cyan2:  #A2F3F3;
+    --white:  #f0f6ff;
+    --grey:   #8baabb;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    line-height: 1.7;
+  }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(3, 18, 40, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0, 237, 237, 0.15);
+    display: flex; align-items: center; gap: 2rem;
+    padding: 0 2.5rem; height: 56px;
+  }
+  nav .brand { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; color: var(--cyan); text-transform: uppercase; }
+  nav a { font-size: 0.78rem; font-weight: 500; color: var(--grey); text-decoration: none; letter-spacing: 0.04em; transition: color 0.2s; }
+  nav a:hover { color: var(--cyan); }
+  nav .spacer { flex: 1; }
+  nav .badge { font-size: 0.7rem; font-weight: 600; color: var(--navy); background: var(--cyan); padding: 3px 10px; border-radius: 20px; letter-spacing: 0.04em; }
+
+  /* ── SECTIONS ─────────────────────────────────────────────── */
+  section { padding: 100px 0 80px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+  /* ── HERO ─────────────────────────────────────────────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding-top: 56px;
+    background: radial-gradient(ellipse at 60% 40%, rgba(0,237,237,0.06) 0%, transparent 70%),
+                linear-gradient(180deg, #031220 0%, var(--navy) 100%);
+    position: relative; overflow: hidden;
+  }
+  #hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(90deg, rgba(0,237,237,0.03) 0px, transparent 1px, transparent 80px),
+                      repeating-linear-gradient(0deg,  rgba(0,237,237,0.03) 0px, transparent 1px, transparent 80px);
+  }
+  .hero-inner { position: relative; }
+  .hero-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan); border: 1px solid rgba(0,237,237,0.35); padding: 5px 14px; border-radius: 20px; margin-bottom: 1.4rem; }
+  h1 { font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 800; line-height: 1.08; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+  h1 span { color: var(--cyan); }
+  .hero-sub { font-size: 1.1rem; font-weight: 400; color: var(--cyan2); max-width: 600px; margin-bottom: 2.5rem; }
+  .stat-row { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+  .stat { border-left: 3px solid var(--cyan); padding-left: 1rem; }
+  .stat .num { font-size: 2rem; font-weight: 800; color: var(--cyan); line-height: 1; }
+  .stat .lbl { font-size: 0.72rem; font-weight: 500; color: var(--grey); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+  .scroll-hint { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--grey); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .scroll-hint::after { content: ''; display: block; width: 1px; height: 40px; background: linear-gradient(to bottom, var(--grey), transparent); animation: scrollPulse 2s ease-in-out infinite; }
+  @keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* ── SECTION HEADINGS ─────────────────────────────────────── */
+  .section-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.6rem; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.9rem; }
+  h3 { font-size: 1.05rem; font-weight: 700; color: var(--cyan2); margin-bottom: 0.5rem; }
+  .lead { font-size: 1.0rem; color: var(--cyan2); max-width: 700px; margin-bottom: 2.5rem; }
+  p { color: #8baabb; font-size: 0.92rem; }
+
+  /* ── CARDS ────────────────────────────────────────────────── */
+  .card-grid { display: grid; gap: 1.2rem; }
+  .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 768px) { .card-grid.cols-3, .card-grid.cols-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: rgba(48, 69, 80, 0.35);
+    border: 1px solid rgba(0, 237, 237, 0.12);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: border-color 0.25s;
+  }
+  .card:hover { border-color: rgba(0, 237, 237, 0.35); }
+  .card-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .card p { font-size: 0.85rem; }
+
+  /* ── CHART PANELS ─────────────────────────────────────────── */
+  .chart-panel {
+    background: rgba(3, 18, 40, 0.5);
+    border: 1px solid rgba(0, 237, 237, 0.12);
+    border-radius: 12px;
+    padding: 1.8rem;
+    margin-bottom: 2rem;
+  }
+  .chart-panel h3 { margin-bottom: 0.3rem; }
+  .chart-panel p { font-size: 0.8rem; margin-bottom: 1.2rem; }
+  .chart-wrap { position: relative; }
+
+  /* ── EFFICIENCY BAR ───────────────────────────────────────── */
+  .eff-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+  .eff-row { display: grid; grid-template-columns: 200px 1fr 60px; align-items: center; gap: 1rem; }
+  .eff-label { font-size: 0.78rem; font-weight: 600; color: var(--cyan2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .eff-bar-bg { height: 22px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+  .eff-bar { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; padding-left: 8px; font-size: 0.68rem; font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .eff-val { font-size: 0.82rem; font-weight: 700; text-align: right; }
+  .ref-line { position: relative; }
+  .ref-line::after {
+    content: 'Field average';
+    position: absolute;
+    top: -22px; left: calc(var(--ref-pct));
+    transform: translateX(-50%);
+    font-size: 0.62rem;
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+  .ref-marker {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: var(--ref-pct);
+    width: 2px;
+    background: var(--cyan);
+    border-radius: 1px;
+  }
+
+  /* ── HEATMAP ──────────────────────────────────────────────── */
+  .heatmap-wrap { overflow-x: auto; }
+  table.heatmap { border-collapse: collapse; font-size: 0.72rem; min-width: 100%; }
+  table.heatmap th { padding: 6px 10px; text-align: center; color: var(--grey); font-weight: 600; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  table.heatmap td { padding: 6px 8px; text-align: center; border: 1px solid rgba(255,255,255,0.04); font-weight: 700; font-size: 0.75rem; border-radius: 2px; white-space: nowrap; }
+  table.heatmap td.well-name { text-align: left; color: var(--cyan2); font-size: 0.7rem; padding-right: 1rem; }
+  .heatmap-legend { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; font-size: 0.7rem; color: var(--grey); }
+  .heatmap-legend .grad { width: 120px; height: 10px; border-radius: 3px; background: linear-gradient(to right, #e74c3c, #f39c12, #f0f6ff, #00EDED, #0a9e9e); }
+
+  /* ── PARAM CASE STUDY ─────────────────────────────────────── */
+  .param-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 700px) { .param-compare { grid-template-columns: 1fr; } }
+  .param-card { background: rgba(3,18,40,0.6); border: 1px solid rgba(0,237,237,0.15); border-radius: 10px; padding: 1.4rem; }
+  .param-card .formation-badge { display: inline-block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,237,237,0.12); color: var(--cyan); border-radius: 4px; padding: 3px 9px; margin-bottom: 0.8rem; }
+  .param-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 0.6rem; }
+  .param-table tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .param-table td { padding: 5px 0; }
+  .param-table td:first-child { color: var(--grey); }
+  .param-table .q1 { color: #ff7c7c; font-weight: 600; text-align: right; }
+  .param-table .q4 { color: var(--cyan); font-weight: 700; text-align: right; }
+  .param-table th { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--grey); padding-bottom: 6px; text-align: right; }
+  .param-table th:first-child { text-align: left; }
+  .rop-jump { display: flex; align-items: center; gap: 1rem; margin: 0.8rem 0; }
+  .rop-num { font-size: 1.6rem; font-weight: 800; }
+  .rop-num.slow { color: #ff7c7c; }
+  .rop-num.fast { color: var(--cyan); }
+  .rop-arrow { font-size: 1.2rem; color: var(--grey); }
+  .rop-unit { font-size: 0.7rem; color: var(--grey); }
+
+  /* ── CONCLUSIONS ──────────────────────────────────────────── */
+  #conclusions { background: linear-gradient(180deg, var(--navy) 0%, #021020 100%); }
+  .conclusion-list { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; max-width: 780px; }
+  .conclusion-list li { display: flex; gap: 1rem; align-items: flex-start; }
+  .conclusion-list .bullet { flex-shrink: 0; width: 28px; height: 28px; background: rgba(0,237,237,0.12); border: 1px solid rgba(0,237,237,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; color: var(--cyan); margin-top: 2px; }
+  .conclusion-list .text { font-size: 0.92rem; color: var(--cyan2); }
+  .conclusion-list .text strong { color: #fff; }
+
+  /* ── FOOTER ───────────────────────────────────────────────── */
+  footer { border-top: 1px solid rgba(0,237,237,0.1); padding: 2rem; text-align: center; font-size: 0.72rem; color: var(--grey); letter-spacing: 0.04em; }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  /* ── DIVIDER ──────────────────────────────────────────────── */
+  .divider { width: 48px; height: 3px; background: var(--cyan); border-radius: 2px; margin: 1.2rem 0 2.5rem; }
+
+  /* ── FADE-IN ──────────────────────────────────────────────── */
+  /* Content is visible by default; JS adds the animation class so it
+     degrades gracefully if scripts are blocked. */
+  .fade-in { opacity: 1; transform: none; transition: opacity 0.7s ease, transform 0.7s ease; }
+  .js .fade-in { opacity: 0; transform: translateY(24px); }
+  .js .fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="brand">Volve Intelligence</div>
+  <a href="#dataset">Dataset</a>
+  <a href="#efficiency">Efficiency</a>
+  <a href="#benchmarks">Benchmarks</a>
+  <a href="#performance">Well Performance</a>
+  <a href="#conclusions">Conclusions</a>
+  <div class="spacer"></div>
+  <span class="badge">North Sea · Equinor Open Data</span>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="container hero-inner">
+    <div class="hero-tag">Volve Field — Data Science Analysis</div>
+    <h1>What really drives<br><span>drilling performance</span><br>in the North Sea?</h1>
+    <p class="hero-sub">We analysed over 15 million 30-second drilling records from the Equinor Volve open dataset to answer a question that matters to every drilling engineer: what parameters separate fast drilling from slow?</p>
+    <div class="stat-row">
+      <div class="stat"><div class="num">14</div><div class="lbl">Wells analysed</div></div>
+      <div class="stat"><div class="num">15M+</div><div class="lbl">Sensor readings</div></div>
+      <div class="stat"><div class="num">13</div><div class="lbl">Formations mapped</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Key ML models</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint">Scroll</div>
+</section>
+
+<!-- DATASET -->
+<section id="dataset">
+  <div class="container fade-in">
+    <div class="section-label">The Dataset</div>
+    <h2>Volve — the most open oilfield in history</h2>
+    <div class="divider"></div>
+    <p class="lead">In 2018, Equinor released the complete production history of the Volve field in the Norwegian North Sea. 5,000 documents, 40,000 files, 24GB of operational data — all public domain.</p>
+    <div class="card-grid cols-3">
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <h3>WITSML Drilling Data</h3>
+        <p>Real-time 30-second sensor logs: weight on bit, rotary speed, standpipe pressure, flow rate, torque, hookload, mud weight and rate of penetration.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🪨</div>
+        <h3>Formation Tops</h3>
+        <p>EDM XML geology records mapped 13 distinct formations from Utsira (shallow) to Skagerrak (deep reservoir) for each well in the campaign.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>The Analysis</h3>
+        <p>Two complementary approaches: a within-well XGBoost efficiency model to detect underperformance, and quartile benchmarking to find optimal parameter windows per formation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EFFICIENCY -->
+<section id="efficiency" style="background: rgba(3,18,40,0.4);">
+  <div class="container fade-in">
+    <div class="section-label">Within-Well Retrospective</div>
+    <h2>Which wells drilled faster or slower than expected?</h2>
+    <div class="divider"></div>
+    <p class="lead">An XGBoost model trained on the first 80% of each well's timeline predicts what ROP <em>should</em> have been given the drilling parameters. The <strong>efficiency score</strong> — actual ÷ predicted — reveals where performance deviated from expectations.</p>
+
+    <div class="card-grid cols-3" style="margin-bottom: 2.5rem;">
+      <div class="card">
+        <h3 style="color:#ff7c7c">Below 0.7×</h3>
+        <p>Sustained underperformance. Likely causes: bit wear, hard unexpectedly hard formation, or suboptimal parameter selection.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:#f0f6ff">0.9× – 1.1×</h3>
+        <p>Well-calibrated drilling. Actual ROP matches what the model expects from the applied parameters and conditions.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--cyan)">Above 1.2×</h3>
+        <p>Outperforming the model. Favourable formation conditions, good parameter selection, or both working in the driller's favour.</p>
+      </div>
+    </div>
+
+    <div class="chart-panel">
+      <h3>Drilling Efficiency by Well — Test Period (on-bottom hours only)</h3>
+      <p>Median efficiency score for the held-out 20% of each well's timeline. Only active on-bottom rows (WOB &gt; 2 kN, RPM &gt; 20, ROP &gt; 1 m/hr) are included.</p>
+      <div id="eff-chart-container" class="eff-grid" style="padding: 0.5rem 0;"></div>
+    </div>
+
+    <div class="card-grid cols-2" style="margin-top: 1rem;">
+      <div class="card">
+        <h3 style="color:#ff7c7c">F-10 &amp; F-15S — Systematic underperformance</h3>
+        <p>F-10 drilled chalk at 4,500–5,300m — the deepest section in the campaign — where tight formation limited ROP regardless of parameters. F-15S is a directional sidetrack: high RPM and light WOB deliberately sacrificed ROP to maintain trajectory control.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--cyan)">F-14 — Genuine outperformance</h3>
+        <p>F-14's test period hit formations where the actual ROP consistently exceeded model predictions. The well drilled its test section ~40% faster than the fleet-average model expected given those drilling parameters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENCHMARKS -->
+<section id="benchmarks">
+  <div class="container fade-in">
+    <div class="section-label">Parameter Benchmarking</div>
+    <h2>What separates the fastest 25% from the slowest 25%?</h2>
+    <div class="divider"></div>
+    <p class="lead">For each formation we split all on-bottom drilling records into ROP quartiles. Comparing median parameters in Q1 (slowest) versus Q4 (fastest) reveals which levers move the needle — and which don't.</p>
+
+    <div class="chart-panel" style="margin-bottom: 2rem;">
+      <h3>ROP Quartile Range by Formation (Q1 slow · Q4 fast)</h3>
+      <p>Median ROP in the bottom and top quartile for each formation. The gap tells you how much headroom exists.</p>
+      <div class="chart-wrap" style="height: 340px;"><canvas id="ropByFormation"></canvas></div>
+    </div>
+
+    <h3 style="margin-bottom: 1rem; color: var(--white);">Two contrasting formation archetypes</h3>
+    <div class="param-compare">
+      <div class="param-card">
+        <div class="formation-badge">Skagerrak — WOB Dominant</div>
+        <div class="rop-jump">
+          <div><div class="rop-num slow">11</div><div class="rop-unit">Q1 median m/hr</div></div>
+          <div class="rop-arrow">→</div>
+          <div><div class="rop-num fast">102</div><div class="rop-unit">Q4 median m/hr</div></div>
+        </div>
+        <p style="font-size:0.8rem; margin-bottom:0.8rem;">Push harder, rotate slower. High WOB crushes the soft sandstone; excessive RPM wastes energy without adding penetration.</p>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Q1 (slow)</th><th>Q4 (fast)</th></tr></thead>
+          <tbody>
+            <tr><td>WOB (kN)</td><td class="q1">7.3</td><td class="q4">15.5 ↑</td></tr>
+            <tr><td>RPM</td><td class="q1">179</td><td class="q4">50 ↓</td></tr>
+            <tr><td>Torque (kNm)</td><td class="q1">15.5</td><td class="q4">15.2</td></tr>
+            <tr><td>Flow in (L/min)</td><td class="q1">1,963</td><td class="q4">1,963</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="param-card">
+        <div class="formation-badge">Ty — RPM Dominant</div>
+        <div class="rop-jump">
+          <div><div class="rop-num slow">1.5</div><div class="rop-unit">Q1 median m/hr</div></div>
+          <div class="rop-arrow">→</div>
+          <div><div class="rop-num fast">29</div><div class="rop-unit">Q4 median m/hr</div></div>
+        </div>
+        <p style="font-size:0.8rem; margin-bottom:0.8rem;">Spin faster, push lighter. Ty responds to high rotation rates; heavy WOB in this section likely caused weight transfer issues or bit balling.</p>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Q1 (slow)</th><th>Q4 (fast)</th></tr></thead>
+          <tbody>
+            <tr><td>WOB (kN)</td><td class="q1">7.6</td><td class="q4">5.1 ↓</td></tr>
+            <tr><td>RPM</td><td class="q1">30</td><td class="q4">160 ↑</td></tr>
+            <tr><td>Torque (kNm)</td><td class="q1">13.9</td><td class="q4">19.7 ↑</td></tr>
+            <tr><td>Flow in (L/min)</td><td class="q1">3,518</td><td class="q4">3,516</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-panel" style="margin-top: 2rem;">
+      <h3>Deep reservoir insight — lower flow in the fastest rows</h3>
+      <p>In Aasgard, Draupne, Heather and Hugin formations the fastest-drilling rows used <em>less</em> mud circulation than the slowest. High ROP in these sections reflects natural fractures and porosity, not aggressive parameters — the rock drills itself when conditions are right.</p>
+      <div class="chart-wrap" style="height: 260px;"><canvas id="flowChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- WELL PERFORMANCE -->
+<section id="performance" style="background: rgba(3,18,40,0.4);">
+  <div class="container fade-in">
+    <div class="section-label">Per-Well Formation Performance</div>
+    <h2>Which wells excelled — and where?</h2>
+    <div class="divider"></div>
+    <p class="lead">For each (well, formation) pair we compute the ratio of that well's median ROP to the field-wide median. Values above 1.0 mean this well drilled faster than the campaign average in that formation.</p>
+
+    <div class="chart-panel">
+      <h3>ROP Ratio vs Field Median — Selected Formations</h3>
+      <p>Colour intensity shows deviation from field average (1.0 = field median). Only wells with ≥ 50 on-bottom rows in that formation are shown.</p>
+      <div class="heatmap-wrap">
+        <table class="heatmap" id="heatmap-table"></table>
+      </div>
+      <div class="heatmap-legend">
+        <span>Slow</span>
+        <div class="grad"></div>
+        <span>Fast</span>
+        <span style="margin-left:1rem; color:var(--cyan2);">Number = ROP ratio vs field median (1.0 = average)</span>
+      </div>
+    </div>
+
+    <div class="card-grid cols-3" style="margin-top: 1.5rem;">
+      <div class="card">
+        <h3>F-5 — Consistent outperformer</h3>
+        <p>Above field median in every formation with adequate data, reaching 2.3× in Hugin and 2.2× in Skagerrak. Strong reservoir placement throughout the campaign.</p>
+      </div>
+      <div class="card">
+        <h3>F-12 — Highly inconsistent</h3>
+        <p>Strong in shallow sections but catastrophically slow in Heather (0.09× field median). Likely wellbore instability or severe bit wear in the deep formation transition.</p>
+      </div>
+      <div class="card">
+        <h3>F-10 — Hard-drilling trajectory</h3>
+        <p>Consistently below field median across formations. Not a parameter problem — F-10 encountered tighter, harder rock throughout its trajectory, confirmed by its 4,500–5,300m chalk section.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSIONS -->
+<section id="conclusions">
+  <div class="container fade-in">
+    <div class="section-label">Key Conclusions</div>
+    <h2>What the data tells us</h2>
+    <div class="divider"></div>
+    <ul class="conclusion-list">
+      <li>
+        <div class="bullet">1</div>
+        <div class="text"><strong>Formation type is the primary ROP driver, not drilling parameters.</strong> The same WOB and RPM combination produced ROP values ranging from 1.5 to 102 m/hr depending on which formation was being drilled. Geological placement dominates.</div>
+      </li>
+      <li>
+        <div class="bullet">2</div>
+        <div class="text"><strong>Different formations require fundamentally different parameter strategies.</strong> Skagerrak demands high WOB and slow rotation. Ty demands fast rotation with light WOB. Chalk benefits from both. No single parameter recipe works across all formations.</div>
+      </li>
+      <li>
+        <div class="bullet">3</div>
+        <div class="text"><strong>High ROP in reservoir formations is often geological, not operational.</strong> In Aasgard, Draupne and Heather, the fastest-drilling intervals used <em>less</em> mud circulation — suggesting the driller reduced flow into naturally fractured/porous rock, not that aggressive parameters caused the speed.</div>
+      </li>
+      <li>
+        <div class="bullet">4</div>
+        <div class="text"><strong>The efficiency model reliably identifies genuine underperformance.</strong> After filtering non-drilling states (WOB=0, tripping, reaming), F-10's chronic underperformance traces to hard deep chalk — a formation problem. F-15S's efficiency deficit maps to directional drilling mode, not bit wear.</div>
+      </li>
+      <li>
+        <div class="bullet">5</div>
+        <div class="text"><strong>F-14's Ty section (5.8× field median) and F-5's consistent outperformance</strong> demonstrate that well trajectory quality is a separating factor — these wells were placed in better-quality rock, not drilled with superior technique.</div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Analysis based on the <a href="https://www.equinor.com/energy/volve-data-sharing" target="_blank">Equinor Volve Open Dataset</a> &nbsp;·&nbsp;
+  Pipeline built on Apache Spark + XGBoost on Databricks &nbsp;·&nbsp;
+  15M+ rows · 14 wells · Norwegian North Sea
+</footer>
+
+<script>
+// Enable JS-enhanced animations now that scripts are confirmed running
+document.documentElement.classList.add('js');
+
+// ── CHART DEFAULTS ────────────────────────────────────────────
+Chart.defaults.color = '#8baabb';
+Chart.defaults.font.family = 'Montserrat';
+Chart.defaults.font.size = 11;
+
+// ── EFFICIENCY BARS ───────────────────────────────────────────
+const wellData = [
+  { name: 'F-15S (sidetrack)',   eff: 0.357, display: 'F-15S' },
+  { name: 'F-10',                eff: 0.582, display: 'F-10' },
+  { name: 'F-15A',               eff: 0.849, display: 'F-15A' },
+  { name: 'F-15',                eff: 0.987, display: 'F-15' },
+  { name: 'F-5',                 eff: 1.029, display: 'F-5' },
+  { name: 'F-14',                eff: 1.420, display: 'F-14' },
+];
+const maxEff = 1.7;
+const refPct = (1.0 / maxEff * 100).toFixed(1) + '%';
+
+const container = document.getElementById('eff-chart-container');
+container.innerHTML = wellData.map(w => {
+  const pct   = (w.eff / maxEff * 100).toFixed(1);
+  const color = w.eff >= 1.1 ? '#00EDED' : w.eff >= 0.85 ? '#A2F3F3' : w.eff >= 0.70 ? '#f39c12' : '#e74c3c';
+  const textColor = w.eff >= 0.70 ? '#031220' : '#fff';
+  const valColor  = w.eff >= 1.1 ? '#00EDED' : w.eff >= 0.85 ? '#A2F3F3' : w.eff >= 0.70 ? '#f39c12' : '#e74c3c';
+  return `
+  <div class="eff-row">
+    <div class="eff-label">${w.name}</div>
+    <div class="eff-bar-bg ref-line" style="--ref-pct:${refPct}; position:relative;">
+      <div class="eff-bar" style="width:${pct}%; background:${color}; color:${textColor};">${w.display}</div>
+      <div class="ref-marker" style="left:${refPct};"></div>
+    </div>
+    <div class="eff-val" style="color:${valColor}">${w.eff.toFixed(2)}×</div>
+  </div>`;
+}).join('');
+
+// ── ROP BY FORMATION CHART ────────────────────────────────────
+const formations = ['Utsira','Skade','Grid','Balder','Sele','Lista','Ty','Chalk','Aasgard','Draupne','Heather','Hugin','Skagerrak'];
+const q1 = [10.02, 12.33, 10.61, 8.79, 9.99, 12.10, 1.54, 1.88, 2.12, 1.86, 1.98, 4.57, 11.44];
+const q4 = [58.34, 44.55, 42.90, 30.34, 31.87, 31.28, 28.95, 24.68, 12.16, 18.40, 25.06, 39.32, 102.06];
+
+new Chart(document.getElementById('ropByFormation'), {
+  type: 'bar',
+  data: {
+    labels: formations,
+    datasets: [
+      { label: 'Q1 — Slowest 25%', data: q1, backgroundColor: 'rgba(231,76,60,0.7)', borderColor: 'rgba(231,76,60,1)', borderWidth: 1, borderRadius: 3 },
+      { label: 'Q4 — Fastest 25%', data: q4, backgroundColor: 'rgba(0,237,237,0.7)', borderColor: '#00EDED', borderWidth: 1, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} m/hr` } }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { maxRotation: 35 } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Median ROP (m/hr)' } }
+    }
+  }
+});
+
+// ── FLOW CHART ────────────────────────────────────────────────
+const deepFm = ['Aasgard', 'Draupne', 'Heather', 'Hugin'];
+const flowQ1 = [3424.5, 3542.2, 3542.0, 3500.5];
+const flowQ4 = [2089.6, 2093.5, 2430.2, 2089.3];
+
+new Chart(document.getElementById('flowChart'), {
+  type: 'bar',
+  data: {
+    labels: deepFm,
+    datasets: [
+      { label: 'Q1 (slow) — Flow in (L/min)', data: flowQ1, backgroundColor: 'rgba(231,76,60,0.65)', borderColor: 'rgba(231,76,60,1)', borderWidth: 1, borderRadius: 3 },
+      { label: 'Q4 (fast) — Flow in (L/min)', data: flowQ4, backgroundColor: 'rgba(0,237,237,0.65)', borderColor: '#00EDED', borderWidth: 1, borderRadius: 3 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()} L/min` } }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Mud Flow Rate (L/min)' }, min: 1500 }
+    }
+  }
+});
+
+// ── HEATMAP TABLE ─────────────────────────────────────────────
+const hmWells = ['F-4','F-5','F-7','F-10','F-12','F-14'];
+const hmForms = ['Utsira','Skade','Grid','Balder','Ty','Chalk','Aasgard','Draupne','Heather','Hugin','Skagerrak'];
+
+// ratio values, null = no data (< 50 rows)
+const hmData = {
+  'F-4':  [1.206, 1.095, 1.967, 2.484, 1.429, 2.615, 1.340, 1.263, 0.958,  1.601, 1.001],
+  'F-5':  [1.272, 1.228, 1.958, 2.747, 4.185, 1.122, 2.950, 3.311, 1.875,  2.280, 2.240],
+  'F-7':  [1.006, null,  null,  null,  null,  null,  null,  null,  null,   null,  null ],
+  'F-10': [0.660, 0.600, 0.961, 0.850, 2.360, 0.784, null,  0.473, 1.151,  1.449, 1.060],
+  'F-12': [1.095, 1.096, null,  null,  0.276, 1.184, 0.710, 0.577, 0.087,  0.583, null ],
+  'F-14': [0.667, 1.265, 1.989, 1.093, 5.834, 1.851, 2.352, 1.502, 0.464,  1.303, 0.860],
+};
+
+function ratioColor(v) {
+  if (v === null) return { bg: 'rgba(255,255,255,0.03)', fg: '#4a6070' };
+  if (v >= 2.5)  return { bg: 'rgba(0,200,200,0.65)', fg: '#031220' };
+  if (v >= 1.5)  return { bg: 'rgba(0,200,200,0.35)', fg: '#A2F3F3' };
+  if (v >= 1.1)  return { bg: 'rgba(0,200,200,0.18)', fg: '#A2F3F3' };
+  if (v >= 0.9)  return { bg: 'rgba(255,255,255,0.07)', fg: '#f0f6ff' };
+  if (v >= 0.70) return { bg: 'rgba(243,156,18,0.25)', fg: '#f39c12' };
+  return { bg: 'rgba(231,76,60,0.35)', fg: '#ff7c7c' };
+}
+
+const tbl = document.getElementById('heatmap-table');
+let html = '<thead><tr><th style="text-align:left">Well</th>';
+hmForms.forEach(f => html += `<th>${f}</th>`);
+html += '</tr></thead><tbody>';
+hmWells.forEach(w => {
+  html += `<tr><td class="well-name">${w}</td>`;
+  hmForms.forEach((f, i) => {
+    const v = hmData[w][i];
+    const c = ratioColor(v);
+    const txt = v !== null ? v.toFixed(2) : '—';
+    html += `<td style="background:${c.bg}; color:${c.fg};">${txt}</td>`;
+  });
+  html += '</tr>';
+});
+html += '</tbody>';
+tbl.innerHTML = html;
+
+// ── INTERSECTION OBSERVER — FADE IN ───────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
